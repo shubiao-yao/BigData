@@ -16,7 +16,6 @@ def classify(inX, dataSet, labels, k):
     classCount = {}
     for i in range(k):
         voteIlabel = labels[sortedDistIndicies[i]]
-        # D.get(k[,d]) -> D[k] if k in D, else d. d defaults to None.
         classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
     # 排序
     sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
