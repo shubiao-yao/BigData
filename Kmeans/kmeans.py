@@ -1,112 +1,120 @@
-# -*- coding: UTF-8 -*-
-import math
-import matplotlib.pyplot as plt
+# -*- coding: utf-8 -*-
+import numpy as np
 import random
-import sys
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
-def dd(v):
-    print v
-    sys.exit(0)
-
-# 欧几里得算法
-def getEuclidean(point1, point2):
-    dimension = len(point1)
-    dist = 0.0
-    for i in range(dimension):
-        dist += (point1[i] - point2[i]) ** 2
-    return math.sqrt(dist)
-
-# kmeans 聚簇算法
-def k_means(data_set, k, iteration):
-    # 初始化簇心向量，得到数组中三个元素的下标
-    index = random.sample(list(range(len(data_set))), k)
-
-    # 得到三个元素对应的 密度和含糖量
-    # 例如：
-    #      下标： index = [28, 8, 7]
-    #      下标为28, 8, 7对应的元素为： dataSet = [[0.725, 0.445], [0.666, 0.091], [0.437, 0.211]]
-    vectors = []
-    for i in index:
-        vectors.append(data_set[i])
-
-    # 初始化标签 写入30个-1
-    labels = []
-    for i in range(len(data_set)):
-        labels.append(-1)
-
-    # 根据迭代次数重复k-means聚类过程
-    while (iteration > 0):
-        # 初始化簇, 簇的个数是k, 现在初始化为3个簇
-        C = []
-        for i in range(k):
-            C.append([])
-
-        # 遍历全部的元素
-        for labelIndex, item in enumerate(data_set):
-            classIndex = -1
-            # minDist 相当于 1000000.0
-            min_dist = 1e6
-
-            # 遍历选中的三个质心，找出当前元素距离最近的簇
-            for i, point in enumerate(vectors):
-                dist = getEuclidean(item, point)
-                if (dist < min_dist):
-                    classIndex = i
-                    min_dist = dist
-            # 得出当前元素距离最近的簇的下标，并将当前元素增加到对应的簇中
-            C[classIndex].append(item)
-            # 记录当前元素归到哪个簇中
-            labels[labelIndex] = classIndex
-
-        # 遍历已经划分好的簇，本例中划分为了3个簇
-        for i, cluster in enumerate(C):
-            clusterHeart = []
-
-            dimension = len(data_set[0])
-            for j in range(dimension):
-                clusterHeart.append(0)
-            # 遍历其中的某一个簇
-            for item in cluster:
-                # item：每个簇中的每个元素，记录着西瓜的 密度和含糖量
-                for j, coordinate in enumerate(item):
-                    # 计算均值 当前元素的密度和含糖量分别除以 当前簇的个数
-                    clusterHeart[j] += coordinate / len(cluster)
-            vectors[i] = clusterHeart
-        iteration -= 1
-
-    return C, labels
+# 通过欧几里得算法计算两点之间的距离
+def get_distance(first_point, second_point):
+    return np.sqrt(np.sum(np.square(first_point - second_point)))
 
 
-# 数据集：每三个是一组分别是西瓜的编号，密度，含糖量
-data = """
-1,0.697,0.46,2,0.774,0.376,3,0.634,0.264,4,0.608,0.318,5,0.556,0.215,
-6,0.403,0.237,7,0.481,0.149,8,0.437,0.211,9,0.666,0.091,10,0.243,0.267,
-11,0.245,0.057,12,0.343,0.099,13,0.639,0.161,14,0.657,0.198,15,0.36,0.37,
-16,0.593,0.042,17,0.719,0.103,18,0.359,0.188,19,0.339,0.241,20,0.282,0.257,
-21,0.748,0.232,22,0.714,0.346,23,0.483,0.312,24,0.478,0.437,25,0.525,0.369,
-26,0.751,0.489,27,0.532,0.472,28,0.473,0.376,29,0.725,0.445,30,0.446,0.459"""
+# 对每个属于data_arr的item， 计算item与center_point中k个质心的距离，找出距离最小的，并将item加入相应的簇类中
+def get_cluster(data_arr, center_point):
+    # 使用字典保存聚类后的结果
+    cluster_dict = dict()
+    # 质心的个数
+    k_len = len(center_point)
 
-# 数据处理 dataSet是30个样本（密度，含糖量）的列表
-a = data.split(',')
-data_set = [[float(a[i]), float(a[i + 1])] for i in range(1, len(a) - 1, 3)]
+    for first_point in data_arr:
+        flag = -1
+        # 初始化最大距离
+        min_distance = np.inf
+        for i in range(k_len):
+            second_point = center_point[i]
+            # 计算两点之间的距离
+            distance = get_distance(first_point, second_point)
+            # 本例子给的质心数是4，内部循环会拿着first_point逐个与4个质心做距离计算，最终会得出最近的距离
+            if distance < min_distance:
+                # 保存最近的距离
+                min_distance = distance
+                # 保存距离最近的质心数组下标
+                flag = i
+        # 如果质心不存在于字典中，在字典中初始化以质心数组下标为key
+        if flag not in cluster_dict.keys():
+            cluster_dict.setdefault(flag, [])
 
-# 设置中心个数，这里我们设置为3
-k = 3
-# 迭代次数
-iteration = 10
+        # 将当前计算的点加入到对应的簇中
+        cluster_dict[flag].append(first_point)
+    return cluster_dict
 
-C, labels = k_means(data_set, k, iteration)
 
-colValue = ['r', 'y', 'g', 'b', 'c', 'k', 'm']
-for i in range(len(C)):
-    coo_X = []  # x坐标列表
-    coo_Y = []  # y坐标列表
-    for j in range(len(C[i])):
-        coo_X.append(C[i][j][0])
-        coo_Y.append(C[i][j][1])
-    plt.scatter(coo_X, coo_Y, marker='x', color=colValue[i % len(colValue)], label=i)
+# 重新计算得到k个质心
+def get_new_center_point(cluster_dict):
+    new_center_point = []
+    for key in cluster_dict.keys():
+        centroid = np.mean(cluster_dict[key], axis=0)
+        new_center_point.append(centroid)
+    # 通过聚类后的字典得到新的质心点
+    return new_center_point
 
-# plt.legend(loc='upper right')
-plt.show()
-print(labels)
+
+def get_sum_value(center_point, cluster_dict):
+    sum_value = 0.0
+    for key in cluster_dict.keys():
+        first_point = center_point[key]
+        distance = 0.0
+        for point in cluster_dict[key]:
+            distance += get_distance(first_point, point)
+        # 将簇中各个点与质心的距离累加求和
+        sum_value += distance
+    return sum_value
+
+
+def show(center_point, cluster_dict):
+    # 展示聚类结果
+    color_mark = ['or', 'ob', 'og', 'ok', 'oy', 'ow']  # 不同簇类标记，o表示圆形，另一个表示颜色
+    center_point_mark = ['dr', 'db', 'dg', 'dk', 'dy', 'dw']
+
+    for key in cluster_dict.keys():
+        plt.plot(center_point[key][0], center_point[key][1], center_point_mark[key], markersize=12)  # 质心点
+        for item in cluster_dict[key]:
+            plt.plot(item[0], item[1], color_mark[key])
+    plt.show()
+
+
+# 从文件中读取数据
+def get_data():
+    data_set = pd.read_csv("./test.txt")
+    return data_set.values
+
+
+# 从数据集中选取k个初始质心
+def init_center_point(data_arr, k):
+    return random.sample(data_arr, k)
+
+
+def k_means(k):
+    # 从文件中获取需要聚类的数据
+    data_arr = get_data()
+
+    # 从数据集中选取k个初始质心
+    center_point = init_center_point(data_arr, k)
+
+    # 首次聚类为4个簇，得出每个簇中对应的点
+    cluster_dict = get_cluster(data_arr, center_point)
+
+    sum_value = get_sum_value(center_point, cluster_dict)
+    old_value = 1
+
+    cluster_dict_result = dict()
+    center_point_result = []
+    # 当两次聚类的误差小于某个值时，说明质心已经不再变化
+    while abs(sum_value - old_value) >= 0.00001:
+        # 重新计算得到k个质心
+        center_point_result = get_new_center_point(cluster_dict)
+        # 聚类出新的4个簇
+        cluster_dict_result = get_cluster(data_arr, center_point_result)
+
+        old_value = sum_value
+        sum_value = get_sum_value(center_point_result, cluster_dict_result)
+
+    show(center_point_result, cluster_dict_result)
+
+
+if __name__ == '__main__':
+    # 簇的个数，这里初始化为4
+    k_value = 4
+
+    k_means(k_value)
