@@ -1,29 +1,47 @@
 # -*- coding: UTF-8 -*-
-from numpy import *
-import operator
+import numpy as np
 
 
-# 定义KNN算法分类器函数
-# 函数参数包括：(测试数据，训练数据，分类,k值)
-def classify(inX, dataSet, labels, k):
-    dataSetSize = dataSet.shape[0]
-    diffMat = tile(inX, (dataSetSize, 1)) - dataSet
-    sqDiffMat = diffMat ** 2
-    sqDistances = sqDiffMat.sum(axis=1)
-    distances = sqDistances ** 0.5  # 计算欧式距离
-    sortedDistIndicies = distances.argsort()  # 排序并返回index
-    # 选择距离最近的k个值
-    classCount = {}
+def get_data():
+    data_arr = np.array([[1, 1.1], [1, 1], [0, 0], [0, 0.1]])
+    label_arr = ['A', 'A', 'B', 'B']
+    return data_arr, label_arr
+
+
+def knn(point, data_arr, labels, k):
+    # 得出训练数据的矩阵，这里的例子是4行2列的矩阵 (m = 4, n = 2)
+    m, n = data_arr.shape
+
+    distances = []
+    for i in range(m):
+        sum_num = 0
+        for j in range(n):
+            # 计算欧式距离
+            sum_num += (point[j] - data_arr[i][j]) ** 2
+        distances.append(sum_num ** 0.5)
+    # 欧式距离递增排序
+    sort_dist = sorted(distances)
+
+    # k个最近的值所属的类别
+    class_count = {}
     for i in range(k):
-        voteIlabel = labels[sortedDistIndicies[i]]
-        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
-    # 排序
-    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
-    return sortedClassCount[0][0]
+        # print distances
+        # print sort_dist
+        # print sort_dist[i]
+        # 通过标签的数组下标获取标签的值
+        label_value = labels[distances.index(sort_dist[i])]
+        # class_count是个字典类型，这里计算标签出现的次数 例如：{'B': 1}
+        class_count[label_value] = class_count.get(label_value, 0) + 1
+
+    # 根据出现的次数将标签递减排序，出现次数最多的标签在数组的最前面
+    sorted_label = sorted(class_count.items(), key=lambda d: d[1], reverse=True)
+    return sorted_label[0][0]
 
 
-# 定义一个生成“训练样本集”的函数，包含特征和分类信息
-def createDataSet():
-    group = array([[1, 1.1], [1, 1], [0, 0], [0, 0.1]])
-    labels = ['A', 'A', 'B', 'B']
-    return group, labels
+if __name__ == '__main__':
+    data, label = get_data()
+    test_point = [0, 0.2]
+    k_value = 3
+
+    r = knn(test_point, data, label, k_value)
+    print(r)
