@@ -24,9 +24,6 @@ def get_cluster(data_arr, center_point):
         min_distance = np.inf
         for i in range(k_len):
             second_point = center_point[i]
-            print first_point
-            print second_point
-            sys.exit(1)
             # 计算两点之间的距离
             distance = get_distance(first_point, second_point)
             # 本例子给的质心数是4，内部循环会拿着first_point逐个与4个质心做距离计算，最终会得出最近的距离
