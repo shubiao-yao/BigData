@@ -40,5 +40,5 @@ if __name__ == '__main__':
     test_point = [0, 0.2]
     k_value = 3
 
-    r = knn(test_point, data, label, k_value)
-    print(r)
+    result = knn(test_point, data, label, k_value)
+    print(result)
