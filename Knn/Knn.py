@@ -25,9 +25,6 @@ def knn(point, data_arr, labels, k):
     # k个最近的值所属的类别
     class_count = {}
     for i in range(k):
-        # print distances
-        # print sort_dist
-        # print sort_dist[i]
         # 通过标签的数组下标获取标签的值
         label_value = labels[distances.index(sort_dist[i])]
         # class_count是个字典类型，这里计算标签出现的次数 例如：{'B': 1}
