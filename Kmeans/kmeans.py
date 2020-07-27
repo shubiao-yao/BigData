@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 def get_distance(first_point, second_point):
     return np.sqrt(np.sum(np.square(first_point - second_point)))
 
-
+ 
 # 对每个属于data_arr的item， 计算item与center_point中k个质心的距离，找出距离最小的，并将item加入相应的簇类中
 def get_cluster(data_arr, center_point):
     # 使用字典保存聚类后的结果
